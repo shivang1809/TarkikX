@@ -6,6 +6,10 @@ import requests
 from fuzzywuzzy import fuzz
 from textblob import TextBlob
 import re
+import spacy
+
+# Load spaCy model for entity extraction
+nlp = spacy.load("en_core_web_sm")
 
 app = Flask(__name__)
 app.secret_key = 'e77dbb4d184c953bf66c86df2d4ecd35'
@@ -16,7 +20,17 @@ DATA_FILE = os.path.join(os.path.dirname(__file__), 'Data.csv')
 # Save new Q&A to CSV
 # ------------------------
 def newData(question, answer):
-    pass
+    try:
+        if not os.path.exists(DATA_FILE):
+            df = pd.DataFrame(columns=["Question", "Answer"])
+        else:
+            df = pd.read_csv(DATA_FILE)
+
+        new_entry = {"Question": question, "Answer": answer}
+        df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
+        df.to_csv(DATA_FILE, index=False)
+    except Exception as e:
+        print(f"Error saving new data: {e}")
 
 # ------------------------
 # Sentiment Detection
@@ -38,7 +52,7 @@ def detect_emotion(text):
 # ------------------------
 def add_emotional_response(question, answer):
     emotion = detect_emotion(question)
-    
+
     if emotion == "positive":
         return f"I'm glad to hear that! 😊<br><br>{answer}"
     elif emotion == "negative":
@@ -62,12 +76,12 @@ def is_comparison_question(question):
 # ------------------------
 def extract_comparison_items(question):
     question = question.lower()
-    
+
     # Case: "X vs Y"
     if " vs " in question:
         parts = question.split(" vs ")
         return parts[0].strip(), parts[1].strip()
-    
+
     # Case: "difference between X and Y" or "compare X and Y"
     match = re.search(r"(?:compare|difference between)\s+(.*?)\s+(?:and|vs)\s+(.*)", question)
     if match:
@@ -88,18 +102,52 @@ def compare_items(item1, item2):
         return fallback_to_google(f"{item1} vs {item2}")
 
 # ------------------------
+# Multi-turn context helpers
+# ------------------------
+def extract_main_entity(answer):
+    """Extract the main named entity from an answer."""
+    doc = nlp(answer)
+    entities = [ent.text for ent in doc.ents]
+    return entities[0] if entities else None
+
+def resolve_pronouns(question, last_entity):
+    """Replace pronouns with last known entity."""
+    if not last_entity:
+        return question
+
+    pronouns = ["he", "she", "they", "it", "this", "that", "him", "her"]
+    words = question.split()
+    replaced = []
+    for word in words:
+        if word.lower() in pronouns:
+            replaced.append(last_entity)
+        else:
+            replaced.append(word)
+    return " ".join(replaced)
+
+# ------------------------
 # Main answer function
 # ------------------------
 def getAnswer(user_question):
-    # Detect and preprocess emotional question
+    # Resolve pronouns using last entity in session
+    if "last_entity" in session and session["last_entity"]:
+        user_question = resolve_pronouns(user_question, session["last_entity"])
+
+    # Clean question for emotional phrases
     clean_question = preprocess_question_based_on_emotion(user_question)
 
-    # Handle comparison questions first
+    # Handle comparison questions
     if is_comparison_question(clean_question):
         item1, item2 = extract_comparison_items(clean_question)
         if item1 and item2:
             raw_answer = compare_items(item1, item2)
             final_answer = add_emotional_response(user_question, raw_answer)
+
+            # Save entity context
+            entity = extract_main_entity(final_answer)
+            if entity:
+                session["last_entity"] = entity
+
             newData(user_question, final_answer)
             return final_answer
 
@@ -107,6 +155,12 @@ def getAnswer(user_question):
     if not os.path.exists(DATA_FILE):
         raw_answer = route_to_sources(clean_question)
         final_answer = add_emotional_response(user_question, raw_answer)
+
+        # Save entity
+        entity = extract_main_entity(final_answer)
+        if entity:
+            session["last_entity"] = entity
+
         return final_answer
 
     df = pd.read_csv(DATA_FILE)
@@ -119,12 +173,18 @@ def getAnswer(user_question):
             best_score = score
             best_match = row['Answer']
 
-    if best_score > 92:
+    if best_score > 85:
         raw_answer = best_match
     else:
         raw_answer = route_to_sources(clean_question)
 
     final_answer = add_emotional_response(user_question, raw_answer)
+
+    # Save entity for context
+    entity = extract_main_entity(final_answer)
+    if entity:
+        session["last_entity"] = entity
+
     newData(user_question, final_answer)
     return final_answer
 
@@ -132,10 +192,8 @@ def getAnswer(user_question):
 def preprocess_question_based_on_emotion(original_question):
     emotion = detect_emotion(original_question)
 
-    # Lowercase and remove emotional phrases
     cleaned_question = original_question.lower()
 
-    # Common emotional phrases to strip (you can expand this list)
     emotional_prefixes = [
         "i'm frustrated with", "i hate", "i love", "i'm confused about",
         "i'm tired of", "i'm annoyed with", "i'm struggling with", "i like",
@@ -146,10 +204,8 @@ def preprocess_question_based_on_emotion(original_question):
         if phrase in cleaned_question:
             cleaned_question = cleaned_question.replace(phrase, "")
 
-    # Strip extra spaces, punctuation etc.
     cleaned_question = cleaned_question.strip("?!. ")
     return cleaned_question
-
 
 # ------------------------
 # Wikipedia summary
@@ -213,11 +269,12 @@ def route_to_sources(question):
 # ------------------------
 # Flask Routes
 # ------------------------
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     if 'history' not in session:
         session['history'] = []
+    if 'last_entity' not in session:
+        session['last_entity'] = None
 
     if request.method == "POST":
         question = request.form.get("query")
@@ -234,6 +291,7 @@ def index():
 @app.route("/reset", methods=["POST"])
 def reset():
     session.pop('history', None)
+    session.pop('last_entity', None)
     return redirect(url_for('index'))
 
 # ------------------------
