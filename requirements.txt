@@ -6,4 +6,3 @@ requests
 fuzzywuzzy
 python-Levenshtein
 textblob
-spacy
