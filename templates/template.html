@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>VaaniX</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg: #051c34;
+            --primary: #010f1e;
+            --user-msg: #052347;
+            --assistant-msg: #494949;
+            --font-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--font-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.5em;
+            box-shadow: 0px 4px 12px 0px rgb(0 0 0 / 78%);
+        }
+        header div {
+            font-weight: bold;
+            margin-left: 20px;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .chat-box {
+            flex-grow: 1;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #081523;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 60vh;
+        }
+
+        .chat-message {
+            display: flex;
+        }
+
+        .user-msg {
+            margin-left: auto;
+            background-color: var(--user-msg);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 18px 18px 0 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .assistant-msg {
+            margin-right: auto;
+            background-color: var(--assistant-msg);
+            color: var(--font-color);
+            padding: 10px 15px;
+            border-radius: 18px 18px 18px 0;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        form.chat-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        form.chat-form input[type="text"] {
+            background-color: unset;
+            color: var(--font-color);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            font-size: 1em;
+            border-radius: 30px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        form.chat-form button[type="submit"] {
+            padding: 5px 15px;
+            font-size: 1em;
+            border: none;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #357ABD;
+        }
+
+        .reset {
+            text-align: right;
+            margin-top: 7px;
+            font-size: 0.9em;
+        }
+
+        .reset button {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                font-size: 1.2em;
+                padding: 8px;
+            }
+
+            input[type="text"],
+            input[type="submit"] {
+                font-size: 0.95em;
+            }
+
+            .chat-box {
+                height: 45vh;
+            }
+
+            .user-msg,
+            .assistant-msg {
+                max-width: 95%;
+            }
+            body{
+                min-height: 92vh;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div>Vaani<span style="color:#64F079;">X</span></div>
+        <form method="post" action="/reset" class="reset">
+            <button type="submit" title="Reset Chat" aria-label="Reset Chat">
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="35" height="35" viewBox="0,0,256,256">
+                    <g fill="#ce3a3a" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt"
+                        stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0"
+                        font-family="none" font-weight="none" font-size="none" text-anchor="none"
+                        style="mix-blend-mode: normal">
+                        <g transform="scale(8,8)">
+                            <path
+                                d="M13.59375,4l-0.3125,0.28125l-0.71875,0.71875h-6.5625v2h1v18c0,1.64453 1.35547,3 3,3h12c1.64453,0 3,-1.35547 3,-3v-18h1v-2h-6.5625l-0.71875,-0.71875l-0.3125,-0.28125zM14.4375,6h3.125l0.71875,0.71875l0.3125,0.28125h4.40625v18c0,0.55469 -0.44531,1 -1,1h-12c-0.55469,0 -1,-0.44531 -1,-1v-18h4.40625l0.3125,-0.28125zM11,11v11h2v-11zM15,11v11h2v-11zM19,11v11h2v-11z">
+                            </path>
+                        </g>
+                    </g>
+                </svg>
+            </button>
+        </form>
+    </header>
+    <main>
+
+        <div class="chat-box" id="chat-box">
+            {% for msg in history %}
+            <div class="chat-message">
+                <div class="user-msg">{{ msg['question'] }}</div>
+            </div>
+            <div class="chat-message">
+                <div class="assistant-msg">{{ msg['answer']|safe }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <form method="post" class="chat-form" id="chat-form">
+            <input type="text" name="query" placeholder="Type your message..." required autofocus autocomplete="off"
+                autocorrect="off" autocapitalize="off" spellcheck="false">
+            <button type="submit" title="Send Message" aria-label="Send Message">
+                <svg width="33" height="33" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 17L11 12L6 7M13 17L18 12L13 7" stroke="#64F079" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+        </form>
+
+
+    </main>
+
+    <script>
+        // Auto-scroll to bottom on page load
+        window.onload = () => {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        };
+    </script>
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const chatForm = document.getElementById('chat-form');
+        const input = chatForm.querySelector('input[name="query"]');
+
+        // Scroll to bottom on load
+        window.onload = () => {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        };
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // prevent full reload
+
+            const userMessage = input.value.trim();
+            if (!userMessage) return;
+
+            // Add user message to chat instantly
+            chatBox.innerHTML += `
+            <div class="chat-message">
+                <div class="user-msg">${escapeHtml(userMessage)}</div>
+            </div>
+        `;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            input.value = '';
+
+            // Send message to server
+            const formData = new FormData();
+            formData.append('query', userMessage);
+
+            const response = await fetch('/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await response.json();
+
+            // Add assistant reply to chat
+            chatBox.innerHTML += `
+            <div class="chat-message">
+                <div class="assistant-msg">${data.answer}</div>
+            </div>
+        `;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+
+</body>
+
+</html>
