@@ -13,12 +13,6 @@ app.secret_key = 'e77dbb4d184c953bf66c86df2d4ecd35'
 DATA_FILE = os.path.join(os.path.dirname(__file__), 'Data.csv')
 
 # ------------------------
-# Save new Q&A to CSV
-# ------------------------
-def newData(question, answer):
-    pass
-
-# ------------------------
 # Sentiment Detection
 # ------------------------
 def detect_emotion(text):
@@ -91,51 +85,42 @@ def compare_items(item1, item2):
 # Main answer function
 # ------------------------
 def getAnswer(user_question):
-    # Detect and preprocess emotional question
     clean_question = preprocess_question_based_on_emotion(user_question)
 
-    # Handle comparison questions first
+    # Handle comparison
     if is_comparison_question(clean_question):
         item1, item2 = extract_comparison_items(clean_question)
         if item1 and item2:
             raw_answer = compare_items(item1, item2)
             final_answer = add_emotional_response(user_question, raw_answer)
-            newData(user_question, final_answer)
             return final_answer
 
     # Search from local data
-    if not os.path.exists(DATA_FILE):
-        raw_answer = route_to_sources(clean_question)
-        final_answer = add_emotional_response(user_question, raw_answer)
-        return final_answer
+    if os.path.exists(DATA_FILE):
+        df = pd.read_csv(DATA_FILE)
+        best_match = None
+        best_score = 0
 
-    df = pd.read_csv(DATA_FILE)
-    best_match = None
-    best_score = 0
+        for _, row in df.iterrows():
+            score = fuzz.token_set_ratio(clean_question.lower(), str(row['Question']).lower())
+            if score > best_score:
+                best_score = score
+                best_match = row['Answer']
 
-    for _, row in df.iterrows():
-        score = fuzz.token_set_ratio(clean_question.lower(), str(row['Question']).lower())
-        if score > best_score:
-            best_score = score
-            best_match = row['Answer']
-
-    if best_score > 92:
-        raw_answer = best_match
+        if best_score > 95:
+            raw_answer = best_match 
+        else:
+            raw_answer = route_to_sources(clean_question)
     else:
         raw_answer = route_to_sources(clean_question)
 
     final_answer = add_emotional_response(user_question, raw_answer)
-    newData(user_question, final_answer)
     return final_answer
-
 
 def preprocess_question_based_on_emotion(original_question):
     emotion = detect_emotion(original_question)
-
-    # Lowercase and remove emotional phrases
     cleaned_question = original_question.lower()
 
-    # Common emotional phrases to strip (you can expand this list)
     emotional_prefixes = [
         "i'm frustrated with", "i hate", "i love", "i'm confused about",
         "i'm tired of", "i'm annoyed with", "i'm struggling with", "i like",
@@ -146,10 +131,8 @@ def preprocess_question_based_on_emotion(original_question):
         if phrase in cleaned_question:
             cleaned_question = cleaned_question.replace(phrase, "")
 
-    # Strip extra spaces, punctuation etc.
     cleaned_question = cleaned_question.strip("?!. ")
     return cleaned_question
-
 
 # ------------------------
 # Wikipedia summary
@@ -169,12 +152,7 @@ def find_from_wikipedia(topic):
 def find_from_duckduckgo(query):
     try:
         url = "https://api.duckduckgo.com/"
-        params = {
-            "q": query,
-            "format": "json",
-            "no_html": 1,
-            "skip_disambig": 1
-        }
+        params = {"q": query, "format": "json", "no_html": 1, "skip_disambig": 1}
         response = requests.get(url, params=params)
         data = response.json()
 
@@ -203,17 +181,14 @@ def route_to_sources(question):
     ddg = find_from_duckduckgo(question)
     if ddg:
         return ddg
-
     wiki = find_from_wikipedia(question)
     if wiki:
         return wiki
-
     return fallback_to_google(question)
 
 # ------------------------
 # Flask Routes
 # ------------------------
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     if 'history' not in session:
@@ -235,6 +210,27 @@ def index():
 def reset():
     session.pop('history', None)
     return redirect(url_for('index'))
+
+# ------------------------
+# Save user corrections
+# ------------------------
+@app.route("/correct", methods=["POST"])
+def correct():
+    question = request.form.get("question")
+    corrected_answer = request.form.get("answer")
+
+    if question and corrected_answer:
+        try:
+            new_entry = pd.DataFrame([[question, corrected_answer]], columns=["Question", "Answer"])
+            if os.path.exists(DATA_FILE):
+                new_entry.to_csv(DATA_FILE, mode='a', header=False, index=False)
+            else:
+                new_entry.to_csv(DATA_FILE, index=False)
+            return jsonify({"status": "success", "message": "Correction saved!"})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)})
+
+    return jsonify({"status": "error", "message": "Invalid input"})
 
 # ------------------------
 # Run the App
