@@ -17,18 +17,7 @@ DATA_FILE = os.path.join(os.path.dirname(__file__), 'Data.csv')
 # Save new Q&A to CSV
 # ------------------------
 def newData(question, answer):
-    """Append new Q&A to CSV if not already present."""
-    if not os.path.exists(DATA_FILE):
-        df = pd.DataFrame(columns=["Question", "Answer"])
-        df.to_csv(DATA_FILE, index=False)
-
-    df = pd.read_csv(DATA_FILE)
-
-    # Prevent duplicates (very simple check: same question text)
-    if not df["Question"].str.contains(re.escape(question), case=False, na=False).any():
-        new_row = pd.DataFrame([[question, answer]], columns=["Question", "Answer"])
-        df = pd.concat([df, new_row], ignore_index=True)
-        df.to_csv(DATA_FILE, index=False)
+    pass
 
 
 # ------------------------
