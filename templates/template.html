@@ -38,7 +38,6 @@
             font-size: 1.5em;
             box-shadow: 0px 4px 12px 0px rgb(0 0 0 / 78%);
         }
-
         header div {
             font-weight: bold;
             margin-left: 20px;
@@ -157,8 +156,7 @@
             .assistant-msg {
                 max-width: 95%;
             }
-
-            body {
+            body{
                 min-height: 92vh;
             }
         }
@@ -212,6 +210,13 @@
     </main>
 
     <script>
+        // Auto-scroll to bottom on page load
+        window.onload = () => {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        };
+    </script>
+    <script>
         const chatBox = document.getElementById('chat-box');
         const chatForm = document.getElementById('chat-form');
         const input = chatForm.querySelector('input[name="query"]');
@@ -222,28 +227,19 @@
         };
 
         chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+            e.preventDefault(); // prevent full reload
 
             const userMessage = input.value.trim();
             if (!userMessage) return;
 
-            // Add user message instantly
+            // Add user message to chat instantly
             chatBox.innerHTML += `
-                <div class="chat-message">
-                    <div class="user-msg">${escapeHtml(userMessage)}</div>
-                </div>
-            `;
+            <div class="chat-message">
+                <div class="user-msg">${escapeHtml(userMessage)}</div>
+            </div>
+        `;
             chatBox.scrollTop = chatBox.scrollHeight;
             input.value = '';
-
-            // Add typing indicator
-            const typingId = "typing-" + Date.now();
-            chatBox.innerHTML += `
-                <div class="chat-message" id="${typingId}">
-                    <div class="assistant-msg">🤖 Typing...</div>
-                </div>
-            `;
-            chatBox.scrollTop = chatBox.scrollHeight;
 
             // Send message to server
             const formData = new FormData();
@@ -259,16 +255,12 @@
 
             const data = await response.json();
 
-            // Remove typing indicator
-            const typingDiv = document.getElementById(typingId);
-            if (typingDiv) typingDiv.remove();
-
-            // Add assistant reply
+            // Add assistant reply to chat
             chatBox.innerHTML += `
-                <div class="chat-message">
-                    <div class="assistant-msg">${data.answer}</div>
-                </div>
-            `;
+            <div class="chat-message">
+                <div class="assistant-msg">${data.answer}</div>
+            </div>
+        `;
             chatBox.scrollTop = chatBox.scrollHeight;
         });
 
