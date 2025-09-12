@@ -88,11 +88,38 @@ def compare_items(item1, item2):
         return fallback_to_google(f"{item1} vs {item2}")
 
 # ------------------------
+# Evaluate basic math
+# ------------------------
+def evaluate_math(question):
+    try:
+        # Extract only numbers and operators
+        # Allow +, -, *, /, **, (, )
+        allowed_chars = "0123456789+-*/(). "
+        filtered = "".join(c for c in question if c in allowed_chars)
+
+        if filtered.strip() == "":
+            return None
+
+        # Evaluate safely
+        result = eval(filtered)
+        return f"The result is: {result}"
+    except:
+        return None
+
+
+# ------------------------
 # Main answer function
 # ------------------------
 def getAnswer(user_question):
     # Detect and preprocess emotional question
     clean_question = preprocess_question_based_on_emotion(user_question)
+
+    # Check for math expressions
+    math_answer = evaluate_math(clean_question)
+    if math_answer:
+        final_answer = add_emotional_response(user_question, math_answer)
+        return final_answer
+
 
     # Handle comparison questions first
     if is_comparison_question(clean_question):
