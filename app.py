@@ -8,7 +8,7 @@ from textblob import TextBlob
 import re
 
 app = Flask(__name__)
-app.secret_key = 'e77dbb4d184c953bf66c86df2d4ecd35'
+app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), 'Data.csv')
 
