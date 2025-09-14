@@ -1,0 +1,17 @@
+[project]
+name = "tarkikx"
+version = "0.0.1"
+dependencies = [
+    "flask",
+    "gunicorn",
+    "pandas",
+    "wikipedia",
+    "requests",
+    "fuzzywuzzy",
+    "python-levenshtein",
+    "textblob",
+    "dotenv>=0.9.9",
+]
+
+[tool.uv]
+package = false
