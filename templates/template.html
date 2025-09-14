@@ -37,11 +37,31 @@
 
         <div class="chat-box" id="chat-box">
             {% for msg in history %}
-            <div class="chat-message">
-                <div class="user-msg">{{ msg['question'] }}</div>
+            <!-- User Message -->
+            <div class="chat-message user-message">
+                <div class="message-avatar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 21V19C20 16.7909 18.2091 15 16 15H8C5.79086 15 4 16.7909 4 19V21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="#64F079" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="message-content">
+                    <div class="message-text">{{ msg['question'] }}</div>
+                    <div class="message-time">{{ msg['timestamp'] }}</div>
+                </div>
             </div>
-            <div class="chat-message">
-                <div class="assistant-msg">{{ msg['answer']|safe }}</div>
+            
+            <!-- Assistant Message -->
+            <div class="chat-message assistant-message">
+                <div class="message-avatar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#64F079" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 8V16M8 12H16" stroke="#64F079" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="message-content">
+                    <div class="message-text">{{ msg['answer']|safe }}</div>
+                    <div class="message-time">{{ msg['timestamp'] }}</div>
+                </div>
             </div>
             {% endfor %}
         </div>

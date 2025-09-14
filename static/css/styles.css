@@ -20,6 +20,8 @@
   --input: 240 5.9% 90%;
   --ring: 142.1 76.2% 36.3%;
   --radius: 0.5rem;
+   --scrollbar-thumb: hsl(var(--muted-foreground));
+  --scrollbar-track: hsl(var(--card));
 
   /* Custom variables */
   --user-msg: 142.1 76.2% 96.3%;
@@ -102,48 +104,152 @@ main {
   padding: 1.5rem 1rem;
   gap: 1.5rem;
 }
-
 .chat-box {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   padding: 1.25rem;
-  background-color: hsl(var(--card));
-  border-radius: var(--radius);
-  border: 1px solid hsl(var(--border));
-  box-shadow: var(--shadow);
   overflow-y: auto;
   min-height: 60vh;
   max-height: calc(100vh - 12rem);
+  scroll-behavior: smooth;
+
+  /* Firefox support */
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Chrome, Edge, Safari */
+.chat-box::-webkit-scrollbar {
+  width: 0.6rem;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 1rem;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.chat-box::-webkit-scrollbar-track {
+  background-color: var(--scrollbar-track);
+  border-radius: 1rem;
+}
+
+/* Optional: hover effect for thumb */
+.chat-box::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--primary));
+}
+
+/* Link styling */
+.chat-box a,
+.chat-box a:visited {
+  color: hsl(var(--primary));
+  text-decoration: none;
 }
 
 .chat-message {
   display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
+  max-width: 90%;
+  width: fit-content;
+  position: relative;
   animation: fadeIn 0.3s ease-out;
 }
 
-.user-msg {
-  margin-left: auto;
-  background-color: hsl(var(--user-msg));
-  color: hsl(var(--primary-foreground));
-  padding: 0.75rem 1rem;
-  border-radius: 1rem 1rem 0 1rem;
-  max-width: 80%;
-  word-wrap: break-word;
-  border: 1px solid hsl(var(--border));
-  box-shadow: var(--shadow);
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.assistant-msg {
-  margin-right: auto;
-  background-color: hsl(var(--assistant-msg));
-  color: hsl(var(--foreground));
-  padding: 0.75rem 1rem;
-  border-radius: 1rem 1rem 1rem 0;
-  max-width: 80%;
+.message-avatar {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 0.25rem;
+  flex-shrink: 0;
+}
+
+.message-avatar svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 100%;
+}
+
+.message-text {
   word-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+.user-message {
+  margin-left: auto;
+  flex-direction: row-reverse;
+  max-width: 90%;
+}
+
+.user-message .message-content {
+  align-items: flex-end;
+}
+
+.user-message .message-text {
+  background-color: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary-foreground));
+  padding: 0.5rem 0.75rem;
+  border-radius: 1rem 1rem 0.25rem 1rem;
+  border: 1px solid hsl(var(--primary) / 0.2);
+}
+
+.assistant-message {
+  margin-right: auto;
+  background-color: hsl(var(--muted));
+  border-radius: 0 1rem 1rem 1rem;
   border: 1px solid hsl(var(--border));
+}
+
+.assistant-message .message-text {
+  color: hsl(var(--foreground));
+}
+
+/* Typing indicator */
+.typing {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+}
+
+.typing-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: hsl(var(--muted-foreground));
+  border-radius: 50%;
+  display: inline-block;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-0.25rem); }
 }
 
 .chat-form {
