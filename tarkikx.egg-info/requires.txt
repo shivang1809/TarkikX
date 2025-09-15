@@ -1,0 +1,8 @@
+flask
+gunicorn
+pandas
+wikipedia
+requests
+fuzzywuzzy
+python-Levenshtein
+textblob

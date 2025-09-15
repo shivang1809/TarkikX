@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+setup.py
+tarkikx.egg-info/PKG-INFO
+tarkikx.egg-info/SOURCES.txt
+tarkikx.egg-info/dependency_links.txt
+tarkikx.egg-info/entry_points.txt
+tarkikx.egg-info/requires.txt
+tarkikx.egg-info/top_level.txt
