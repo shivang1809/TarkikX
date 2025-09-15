@@ -7,11 +7,9 @@ import requests
 from fuzzywuzzy import fuzz
 from textblob import TextBlob
 import re
-from dotenv import load_dotenv
 
-load_dotenv()
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY')
+app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), 'Data.csv')
