@@ -281,9 +281,6 @@ def reset():
     session.pop('history', None)
     return redirect(url_for('index'))
 
-def create_app():
-    return app
-
 # ------------------------
 # Run the App
 # ------------------------
