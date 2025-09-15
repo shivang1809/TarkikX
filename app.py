@@ -1,5 +1,4 @@
 from flask import Flask, request, render_template, session, redirect, url_for, jsonify
-from datetime import datetime
 import pandas as pd
 import wikipedia
 import os
@@ -7,12 +6,9 @@ import requests
 from fuzzywuzzy import fuzz
 from textblob import TextBlob
 import re
-from dotenv import load_dotenv
 
-load_dotenv()
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY')
-
+app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), 'Data.csv')
 
@@ -247,44 +243,25 @@ def route_to_sources(question):
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    # Initialize session if it doesn't exist
-    session.setdefault('history', [])
+    if 'history' not in session:
+        session['history'] = []
 
     if request.method == "POST":
         question = request.form.get("query")
-        if question and question.strip():
+        if question:
             answer = getAnswer(question)
-            timestamp = datetime.now().strftime("%H:%M")
-            session['history'] = session.get('history', []) + [{
-                "question": question, 
-                "answer": answer,
-                "timestamp": timestamp
-            }]
+            session['history'].append({"question": question, "answer": answer})
             session.modified = True
 
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify({
-                    "answer": answer,
-                    "timestamp": timestamp
-                })
-            return redirect(url_for('index'))
-    
-    # Add current timestamp to each message if not exists
-    for msg in session.get('history', []):
-        if 'timestamp' not in msg:
-            msg['timestamp'] = datetime.now().strftime("%H:%M")
-    
-    # Pass history to template for both GET and POST requests
-    return render_template("template.html", 
-                         history=session.get('history', []))
+                return jsonify({"question": question, "answer": answer})
+
+    return render_template("template.html", history=session.get('history', []))
 
 @app.route("/reset", methods=["POST"])
 def reset():
     session.pop('history', None)
     return redirect(url_for('index'))
-
-def create_app():
-    return app
 
 # ------------------------
 # Run the App

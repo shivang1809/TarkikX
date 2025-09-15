@@ -1,16 +1,168 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>TarkikX</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="TarkikX - A modern chat interface">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
-</head>
+    <style>
+        :root {
+            --bg: #051c34;
+            --primary: #010f1e;
+            --user-msg: #052347;
+            --assistant-msg: #494949;
+            --font-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--font-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.5em;
+            box-shadow: 0px 4px 12px 0px rgb(0 0 0 / 78%);
+        }
+
+        header div {
+            font-weight: bold;
+            margin-left: 20px;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .chat-box {
+            flex-grow: 1;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #081523;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 60vh;
+        }
+
+        .chat-message {
+            display: flex;
+        }
+
+        .user-msg {
+            margin-left: auto;
+            background-color: var(--user-msg);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 18px 18px 0 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .assistant-msg {
+            margin-right: auto;
+            background-color: var(--assistant-msg);
+            color: var(--font-color);
+            padding: 10px 15px;
+            border-radius: 18px 18px 18px 0;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        form.chat-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        form.chat-form input[type="text"] {
+            background-color: unset;
+            color: var(--font-color);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            font-size: 1em;
+            border-radius: 30px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        form.chat-form button[type="submit"] {
+            padding: 5px 15px;
+            font-size: 1em;
+            border: none;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #357ABD;
+        }
+
+        .reset {
+            text-align: right;
+            margin-top: 7px;
+            font-size: 0.9em;
+        }
+
+        .reset button {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                font-size: 1.2em;
+                padding: 8px;
+            }
+
+            input[type="text"],
+            input[type="submit"] {
+                font-size: 0.95em;
+            }
+
+            .chat-box {
+                height: 45vh;
+            }
+
+            .user-msg,
+            .assistant-msg {
+                max-width: 95%;
+            }
+
+            body {
+                min-height: 92vh;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -37,38 +189,18 @@
 
         <div class="chat-box" id="chat-box">
             {% for msg in history %}
-            <!-- User Message -->
-            <div class="chat-message user-message">
-                <div class="message-avatar">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 21V19C20 16.7909 18.2091 15 16 15H8C5.79086 15 4 16.7909 4 19V21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="#64F079" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <div class="message-content">
-                    <div class="message-text">{{ msg['question'] }}</div>
-                    <div class="message-time">{{ msg['timestamp'] }}</div>
-                </div>
+            <div class="chat-message">
+                <div class="user-msg">{{ msg['question'] }}</div>
             </div>
-            
-            <!-- Assistant Message -->
-            <div class="chat-message assistant-message">
-                <div class="message-avatar">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#64F079" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12 8V16M8 12H16" stroke="#64F079" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div class="message-content">
-                    <div class="message-text">{{ msg['answer']|safe }}</div>
-                    <div class="message-time">{{ msg['timestamp'] }}</div>
-                </div>
+            <div class="chat-message">
+                <div class="assistant-msg">{{ msg['answer']|safe }}</div>
             </div>
             {% endfor %}
         </div>
 
         <form method="post" class="chat-form" id="chat-form">
             <input type="text" name="query" placeholder="Type your message..." required autofocus autocomplete="off"
-                autocorrect="off" spellcheck="false">
+                autocorrect="off" autocapitalize="off" spellcheck="false">
             <button type="submit" title="Send Message" aria-label="Send Message">
                 <svg width="33" height="33" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M6 17L11 12L6 7M13 17L18 12L13 7" stroke="#64F079" stroke-width="2"
@@ -79,6 +211,74 @@
 
     </main>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const chatForm = document.getElementById('chat-form');
+        const input = chatForm.querySelector('input[name="query"]');
+
+        // Scroll to bottom on load
+        window.onload = () => {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        };
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const userMessage = input.value.trim();
+            if (!userMessage) return;
+
+            // Add user message instantly
+            chatBox.innerHTML += `
+                <div class="chat-message">
+                    <div class="user-msg">${escapeHtml(userMessage)}</div>
+                </div>
+            `;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            input.value = '';
+
+            // Add typing indicator
+            const typingId = "typing-" + Date.now();
+            chatBox.innerHTML += `
+                <div class="chat-message" id="${typingId}">
+                    <div class="assistant-msg">Typing...</div>
+                </div>
+            `;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Send message to server
+            const formData = new FormData();
+            formData.append('query', userMessage);
+
+            const response = await fetch('/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await response.json();
+
+            // Remove typing indicator
+            const typingDiv = document.getElementById(typingId);
+            if (typingDiv) typingDiv.remove();
+
+            // Add assistant reply
+            chatBox.innerHTML += `
+                <div class="chat-message">
+                    <div class="assistant-msg">${data.answer}</div>
+                </div>
+            `;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+
 </body>
+
 </html>
