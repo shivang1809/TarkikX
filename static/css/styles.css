@@ -357,7 +357,7 @@ main {
 @media (max-width: 640px) {
   .chat-box {
     min-height: 50vh;
-    max-height: calc(100vh - 13rem);
+    max-height: calc(100vh - 15rem);
   }
   
   .user-msg,
