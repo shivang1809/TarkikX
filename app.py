@@ -18,8 +18,27 @@ DATA_FILE = os.path.join(os.path.dirname(__file__), 'Data.csv')
 # Save new Q&A to CSV
 # ------------------------
 def newData(question, answer):
-    pass
+    try:
+        # Create DataFrame for new entry
+        new_entry = pd.DataFrame([{
+            "Question": question,
+            "Answer": answer
+        }])
 
+        # If file exists, append without duplicates
+        if os.path.exists(DATA_FILE):
+            df = pd.read_csv(DATA_FILE)
+
+            # Check for duplicate question (case-insensitive)
+            if not df['Question'].str.lower().eq(question.lower()).any():
+                df = pd.concat([df, new_entry], ignore_index=True)
+                df.to_csv(DATA_FILE, index=False)
+        else:
+            # Create new file if it doesn't exist
+            new_entry.to_csv(DATA_FILE, index=False)
+
+    except Exception as e:
+        print(f"Error saving data: {e}")
 # ------------------------
 # Sentiment Detection
 # ------------------------
